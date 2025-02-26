@@ -8,14 +8,8 @@ using FluentResults.Extensions.FluentAssertions;
 
 namespace BXCP.ProgrammingChallenge.Tests;
 
-public class CsvWeatherReaderTest
+public class CsvWeatherReaderTests
 {
-    [SetUp]
-    public void Setup()
-    {
-
-    }
-
     [Test]
     public void ReadWeatherRecords_FileDoesNotExist()
     {
