@@ -12,7 +12,9 @@
       "program": "${workspaceFolder}/Adapters.CLI/bin/Debug/net9.0/Adapters.CLI.dll",
       "args": [
         "--weather-source",
-        "file://weather.csv"
+        "file://weather.csv",
+        "--country-source",
+        "file://countries.csv"
       ]
     }
   ]

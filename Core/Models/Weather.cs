@@ -23,7 +23,7 @@ public class WeatherRecord
 
   public override string ToString()
   {
-    return $"Day: {Day}, Maximum Temperature {MaximumTemperature}, Minimum Temperature: {MinimumTemperature}, Temperature Spread: {TemperatureSpread}";
+    return $"Day: {Day}, Maximum Temperature: {MaximumTemperature}, Minimum Temperature: {MinimumTemperature}, Temperature Spread: {TemperatureSpread}";
   }
 }
 

@@ -1,7 +1,7 @@
 using BXCP.ProgrammingChallenge.Core.Models;
 using FluentAssertions;
 
-namespace BXCP.ProgrammingChallenge.Tests;
+namespace BXCP.ProgrammingChallenge.Tests.Weather;
 
 public class WeatherRecordTests
 {
@@ -47,6 +47,6 @@ public class WeatherRecordTests
         };
 
         // Assert
-        sut.ToString().Should().Be("Day: 1, Maximum Temperature 50, Minimum Temperature: 100, Temperature Spread: 50");
+        sut.ToString().Should().Be("Day: 1, Maximum Temperature: 50, Minimum Temperature: 100, Temperature Spread: 50");
     }
 }

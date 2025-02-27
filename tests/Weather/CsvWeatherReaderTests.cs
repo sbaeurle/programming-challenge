@@ -1,11 +1,9 @@
 using System.IO.Abstractions.TestingHelpers;
-using System.Reflection;
-using System.Text;
 using BXCP.ProgrammingChallenge.Adapters.Csv;
 using FluentAssertions;
 using FluentResults.Extensions.FluentAssertions;
 
-namespace BXCP.ProgrammingChallenge.Tests;
+namespace BXCP.ProgrammingChallenge.Tests.Weather;
 
 public class CsvWeatherReaderTests
 {
@@ -65,7 +63,7 @@ public class CsvWeatherReaderTests
     public void ReadWeatherRecords_MissingColumn()
     {
         // Arrange
-        var testFile = ReadEmbeddedResource("BXCP.ProgrammingChallenge.Tests.Resources.missing-column.csv");
+        var testFile = TestHelper.ReadEmbeddedResource("BXCP.ProgrammingChallenge.Tests.Resources.missing-column.csv");
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>()
         {
             { "missing-columns.csv", new MockFileData(testFile)}
@@ -84,7 +82,7 @@ public class CsvWeatherReaderTests
     public void ReadWeatherRecords_MissingValue()
     {
         // Arrange
-        var testFile = ReadEmbeddedResource("BXCP.ProgrammingChallenge.Tests.Resources.missing-value.csv");
+        var testFile = TestHelper.ReadEmbeddedResource("BXCP.ProgrammingChallenge.Tests.Resources.missing-value.csv");
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>()
         {
             { "missing-columns.csv", new MockFileData(testFile)}
@@ -99,17 +97,22 @@ public class CsvWeatherReaderTests
         result.Should().HaveError("could not parse csv file into weather record object");
     }
 
-    private static string ReadEmbeddedResource(string resourceName)
+    [Test]
+    public void ReadWeatherRecords_Successful()
     {
-        var assembly = Assembly.GetExecutingAssembly();
-        using var stream = assembly.GetManifestResourceStream(resourceName);
-
-        if (stream == null)
+        // Arrange
+        var testFile = TestHelper.ReadEmbeddedResource("BXCP.ProgrammingChallenge.Tests.Resources.weather.csv");
+        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>()
         {
-            throw new FileNotFoundException($"Embedded resource '{resourceName}' not found.");
-        }
+            { "weather.csv", new MockFileData(testFile)}
+        });
+        var sut = new CsvWeatherReader(fileSystem);
 
-        using var reader = new StreamReader(stream, Encoding.UTF8);
-        return reader.ReadToEnd();
+        // Act
+        var result = sut.ReadWeatherRecords("weather.csv");
+
+        // Assert
+        result.Should().BeSuccess();
+        result.Value.Count().Should().Be(30);
     }
 }

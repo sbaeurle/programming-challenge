@@ -1,7 +1,5 @@
-using System;
 using System.CommandLine.Parsing;
 using System.Text.RegularExpressions;
-using CsvHelper.Configuration.Attributes;
 
 namespace BXCP.ProgrammingChallenge.Adapters.Cli;
 

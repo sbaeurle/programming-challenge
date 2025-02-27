@@ -7,7 +7,7 @@ using FluentResults;
 using FluentResults.Extensions.FluentAssertions;
 using Moq;
 
-namespace BXCP.ProgrammingChallenge.Tests;
+namespace BXCP.ProgrammingChallenge.Tests.Weather;
 
 public class WeatherServiceTests
 {
