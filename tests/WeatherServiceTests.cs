@@ -1,20 +1,28 @@
 using AutoFixture;
-using BXCP.ProgrammingChallenge.Core;
-using BXCP.ProgrammingChallenge.Models;
+using BXCP.ProgrammingChallenge.Core.Models;
+using BXCP.ProgrammingChallenge.Core.Services;
+using BXCP.ProgrammingChallenge.Interfaces;
 using FluentAssertions;
+using FluentResults;
 using FluentResults.Extensions.FluentAssertions;
+using Moq;
 
 namespace BXCP.ProgrammingChallenge.Tests;
 
 public class WeatherServiceTests
 {
     private WeatherService _sut;
+    private Mock<IWeatherReader> _mockWeatherReader;
     private IFixture _fixture;
 
     [SetUp]
     public void Setup()
     {
-        _sut = new WeatherService();
+        _mockWeatherReader = new Mock<IWeatherReader>();
+        var readers = new Dictionary<string, IWeatherReader>{
+            { ".test", _mockWeatherReader.Object}
+        };
+        _sut = new WeatherService(readers);
         _fixture = new Fixture();
     }
 
@@ -22,9 +30,12 @@ public class WeatherServiceTests
     public void GetDayWithLeastTemperatureSpread_EmptyEnumerable()
     {
         // Arrange
+        _mockWeatherReader
+            .Setup(x => x.ReadWeatherRecords("empty.test"))
+            .Returns(Result.Ok(Enumerable.Empty<WeatherRecord>()));
 
         // Act
-        var result = _sut.GetDayWithLeastTemperatureSpread([]);
+        var result = _sut.GetDayWithLeastTemperatureSpread("empty.test");
 
         // Assert
         result.Should().BeFailure();
@@ -32,13 +43,45 @@ public class WeatherServiceTests
     }
 
     [Test]
+    public void GetDayWithLeastTemperatureSpread_NoReaderSpecified()
+    {
+        // Arrange
+
+        // Act
+        var result = _sut.GetDayWithLeastTemperatureSpread("empty.fail");
+
+        // Assert
+        result.Should().BeFailure();
+        result.Should().HaveReason("no reader specified for file type .fail");
+    }
+
+    [Test]
+    public void GetDayWithLeastTemperatureSpread_ReaderFails()
+    {
+        // Arrange
+        _mockWeatherReader
+            .Setup(x => x.ReadWeatherRecords("fail.test"))
+            .Returns(Result.Fail("test fails"));
+
+        // Act
+        var result = _sut.GetDayWithLeastTemperatureSpread("fail.test");
+
+        // Assert
+        result.Should().BeFailure();
+        result.Should().HaveReason("could not extract weather records from source fail.test");
+    }
+
+    [Test]
     public void GetDayWithLeastTemperatureSpread_SingleRecord()
     {
         // Arrange
         var testData = _fixture.CreateMany<WeatherRecord>(1);
+        _mockWeatherReader
+            .Setup(x => x.ReadWeatherRecords("singlerecord.test"))
+            .Returns(Result.Ok(testData));
 
         // Act
-        var result = _sut.GetDayWithLeastTemperatureSpread(testData);
+        var result = _sut.GetDayWithLeastTemperatureSpread("singlerecord.test");
 
         // Assert
         result.Should().BeSuccess();
@@ -53,9 +96,12 @@ public class WeatherServiceTests
         // Arrange
         var testData = _fixture.CreateMany<WeatherRecord>(count);
         var expected = testData.MinBy(x => x.TemperatureSpread);
+        _mockWeatherReader
+            .Setup(x => x.ReadWeatherRecords("multiplerecords.test"))
+            .Returns(Result.Ok(testData));
 
         // Act
-        var result = _sut.GetDayWithLeastTemperatureSpread(testData);
+        var result = _sut.GetDayWithLeastTemperatureSpread("multiplerecords.test");
 
         // Assert
         result.Should().BeSuccess();
@@ -70,11 +116,14 @@ public class WeatherServiceTests
             new() { Day = 1, MaximumTemperature = 100, MinimumTemperature = 95},
             new() { Day = 2, MaximumTemperature = 100, MinimumTemperature = 95},
         };
+        _mockWeatherReader
+            .Setup(x => x.ReadWeatherRecords("samevalues.test"))
+            .Returns(Result.Ok<IEnumerable<WeatherRecord>>(testData));
 
         var expected = testData.MinBy(x => x.TemperatureSpread);
 
         // Act
-        var result = _sut.GetDayWithLeastTemperatureSpread(testData);
+        var result = _sut.GetDayWithLeastTemperatureSpread("samevalues.test");
 
         // Assert
         result.Should().BeSuccess();

@@ -1,21 +1,16 @@
-using System;
 using System.ComponentModel.DataAnnotations;
-using CsvHelper.Configuration.Attributes;
 
-namespace BXCP.ProgrammingChallenge.Models;
+namespace BXCP.ProgrammingChallenge.Core.Models;
 
 public class WeatherRecord
 {
-  [Name("Day")]
-  public uint Day { get; set; }
+  public required uint Day { get; set; }
 
-  [Name("MxT")]
   [Range(-100, 100, ErrorMessage = "temperature expected in human liveable conditions")]
-  public int MaximumTemperature { get; set; }
+  public required int MaximumTemperature { get; set; }
 
-  [Name("MnT")]
   [Range(-100, 100, ErrorMessage = "temperature expected in human liveable conditions")]
-  public int MinimumTemperature { get; set; }
+  public required int MinimumTemperature { get; set; }
 
   public int TemperatureSpread
   {
@@ -28,7 +23,7 @@ public class WeatherRecord
 
   public override string ToString()
   {
-    return $"Day: {Day}, Maximum Temperature {MaximumTemperature}, MinimumTemperature: {MinimumTemperature}, Temperature Spread: {TemperatureSpread}";
+    return $"Day: {Day}, Maximum Temperature {MaximumTemperature}, Minimum Temperature: {MinimumTemperature}, Temperature Spread: {TemperatureSpread}";
   }
 }
 
