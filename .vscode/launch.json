@@ -11,10 +11,9 @@
       "name": "Debug Adapters.CLI",
       "program": "${workspaceFolder}/Adapters.CLI/bin/Debug/net9.0/Adapters.CLI.dll",
       "args": [
+        "weather",
         "--weather-source",
-        "file://weather.csv",
-        "--country-source",
-        "file://countries.csv"
+        "file://weather.csv"
       ]
     }
   ]
