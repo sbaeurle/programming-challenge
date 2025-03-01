@@ -2,9 +2,13 @@ using AutoFixture;
 using BXCP.ProgrammingChallenge.Core.Models;
 using BXCP.ProgrammingChallenge.Core.Services;
 using BXCP.ProgrammingChallenge.Interfaces;
+using BXCP.ProgrammingChallenge.Services;
+using Castle.Core.Logging;
 using FluentAssertions;
 using FluentResults;
 using FluentResults.Extensions.FluentAssertions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
 namespace BXCP.ProgrammingChallenge.Tests.Weather;
@@ -14,6 +18,7 @@ public class WeatherServiceTests
     private WeatherService _sut;
     private Mock<IWeatherReader> _mockWeatherReader;
     private IFixture _fixture;
+    private ILogger<IWeatherService> _logger;
 
     [SetUp]
     public void Setup()
@@ -22,7 +27,8 @@ public class WeatherServiceTests
         var readers = new Dictionary<string, IWeatherReader>{
             { ".test", _mockWeatherReader.Object}
         };
-        _sut = new WeatherService(readers);
+        _logger = new NullLogger<IWeatherService>();
+        _sut = new WeatherService(readers, _logger);
         _fixture = new Fixture();
     }
 

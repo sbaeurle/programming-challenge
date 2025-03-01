@@ -7,6 +7,9 @@ using BXCP.ProgrammingChallenge.Adapters.Csv;
 using BXCP.ProgrammingChallenge.Core.Services;
 using BXCP.ProgrammingChallenge.Interfaces;
 using BXCP.ProgrammingChallenge.Services;
+using FluentResults;
+using Microsoft.Extensions.Logging;
+using Serilog;
 
 var rootCommand = new RootCommand(
   @"Weather and Country Source CLI
@@ -14,6 +17,13 @@ var rootCommand = new RootCommand(
         - file:// specify a source file on the local file system");
 
 var fileSystem = new FileSystem();
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Debug()
+    .WriteTo.Console()
+    .CreateLogger();
+
+var loggerFactory = LoggerFactory.Create(builder => builder.AddSerilog(Log.Logger));
+var logger = loggerFactory.CreateLogger<Program>();
 
 var weatherCommand = new Command("weather", "calculate temperature spread");
 
@@ -29,21 +39,21 @@ weatherCommand.AddOption(weatherSourceOption);
 weatherCommand.SetHandler(weatherSource =>
 {
   var readers = new Dictionary<string, IWeatherReader>{
-    {".csv", new CsvWeatherReader(fileSystem)}
+    {".csv", new CsvWeatherReader(fileSystem, loggerFactory.CreateLogger<CsvWeatherReader>())}
   };
 
-  IWeatherService weatherService = new WeatherService(readers);
+  IWeatherService weatherService = new WeatherService(readers, loggerFactory.CreateLogger<WeatherService>());
 
   var result = weatherService.GetDayWithLeastTemperatureSpread(weatherSource);
 
   if (result.IsFailed)
   {
-    Console.WriteLine($"Could not calculate day with least temperature spread: {result}");
+    logger.LogError("Could not calculate day with least temperature spread: {@Reason}", result.Errors[result.Errors.Count - 1]);
     return;
   }
 
   var weatherRecord = result.Value;
-  Console.WriteLine($"Calculated day {weatherRecord.Day} with minimum temperature spread of {weatherRecord.TemperatureSpread} from source {weatherSource}");
+  logger.LogInformation("Calculated day {Day} with minimum temperature spread of {TemperatureSpread} from source {WeatherSource}", weatherRecord.Day, weatherRecord.TemperatureSpread, weatherSource);
 }, weatherSourceOption);
 
 rootCommand.AddCommand(weatherCommand);
@@ -62,21 +72,21 @@ countryCommand.AddOption(countrySourceOption);
 countryCommand.SetHandler(countrySource =>
 {
   var readers = new Dictionary<string, ICountryReader>{
-    {".csv", new CsvCountryReader(fileSystem)}
+    {".csv", new CsvCountryReader(fileSystem, loggerFactory.CreateLogger<CsvCountryReader>())}
   };
 
-  ICountryService countryService = new CountryService(readers);
+  ICountryService countryService = new CountryService(readers, loggerFactory.CreateLogger<CountryService>());
 
   var result = countryService.GetCountryWithHighestPopulationDensity(countrySource);
 
   if (result.IsFailed)
   {
-    Console.WriteLine($"Could not calculate country with highest population density: {result}");
+    logger.LogError("Could not calculate country with highest population density: {@Reason}", result.Errors[result.Errors.Count - 1]);
     return;
   }
 
   var country = result.Value;
-  Console.WriteLine($"Calculated country {country.Name} with highest population density of {country.PopulationDensity.ToString("F2", CultureInfo.CurrentCulture)} per km² from source {countrySource}");
+  logger.LogInformation("Calculated country {Name} with highest population density of {PopulationDensity} per km² from source {CountrySource}", country.Name, country.PopulationDensity.ToString("F2", CultureInfo.CurrentCulture), countrySource);
 }, countrySourceOption);
 
 rootCommand.AddCommand(countryCommand);

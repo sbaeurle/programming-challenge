@@ -1,15 +1,22 @@
 using System.IO.Abstractions.TestingHelpers;
 using BXCP.ProgrammingChallenge.Adapters.Csv;
+using BXCP.ProgrammingChallenge.Interfaces;
+using Castle.Core.Logging;
 using FluentAssertions;
 using FluentResults.Extensions.FluentAssertions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace BXCP.ProgrammingChallenge.Tests.Countries;
 
 public class CsvCountryReaderTests
 {
+    private ILogger<ICountryReader> _logger;
+
     [SetUp]
     public void Setup()
     {
+        _logger = new NullLogger<ICountryReader>();
     }
 
     [Test]
@@ -18,7 +25,7 @@ public class CsvCountryReaderTests
         // Arrange
         var fileSystem = new MockFileSystem();
         var fileName = "doesnotexist.csv";
-        var sut = new CsvCountryReader(fileSystem);
+        var sut = new CsvCountryReader(fileSystem, _logger);
 
         // Act
         var result = sut.ReadCountries(fileName);
@@ -36,7 +43,7 @@ public class CsvCountryReaderTests
         {
             { "empty.csv", new MockFileData(string.Empty)}
         });
-        var sut = new CsvCountryReader(fileSystem);
+        var sut = new CsvCountryReader(fileSystem, _logger);
 
         // Act
         var result = sut.ReadCountries("empty.csv");
@@ -54,7 +61,7 @@ public class CsvCountryReaderTests
         {
             { "empty.txt", new MockFileData(string.Empty)}
         });
-        var sut = new CsvCountryReader(fileSystem);
+        var sut = new CsvCountryReader(fileSystem, _logger);
 
         // Act
         var result = sut.ReadCountries("empty.txt");
@@ -73,7 +80,7 @@ public class CsvCountryReaderTests
         {
             { "countries.csv", new MockFileData(testFile)}
         });
-        var sut = new CsvCountryReader(fileSystem);
+        var sut = new CsvCountryReader(fileSystem, _logger);
 
         // Act
         var result = sut.ReadCountries("countries.csv");
@@ -92,7 +99,7 @@ public class CsvCountryReaderTests
         {
             { "countries-missing-columns.csv", new MockFileData(testFile)}
         });
-        var sut = new CsvCountryReader(fileSystem);
+        var sut = new CsvCountryReader(fileSystem, _logger);
 
         // Act
         var result = sut.ReadCountries("countries-missing-columns.csv");
@@ -111,7 +118,7 @@ public class CsvCountryReaderTests
         {
             { "countries-missing-columns.csv", new MockFileData(testFile)}
         });
-        var sut = new CsvCountryReader(fileSystem);
+        var sut = new CsvCountryReader(fileSystem, _logger);
 
         // Act
         var result = sut.ReadCountries("countries-missing-columns.csv");

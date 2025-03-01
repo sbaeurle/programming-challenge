@@ -4,6 +4,8 @@ using BXCP.ProgrammingChallenge.Core.Services;
 using BXCP.ProgrammingChallenge.Interfaces;
 using FluentResults;
 using FluentResults.Extensions.FluentAssertions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
 namespace BXCP.ProgrammingChallenge.Tests.Countries;
@@ -13,6 +15,7 @@ public class CountryServiceTests
     private CountryService _sut;
     private Mock<ICountryReader> _mockCountryReader;
     private IFixture _fixture;
+    private ILogger<ICountryService> _logger;
 
     [SetUp]
     public void Setup()
@@ -22,7 +25,8 @@ public class CountryServiceTests
         var readers = new Dictionary<string, ICountryReader>{
             { ".test", _mockCountryReader.Object}
         };
-        _sut = new CountryService(readers);
+        _logger = new NullLogger<ICountryService>();
+        _sut = new CountryService(readers, _logger);
     }
 
     [Test]

@@ -1,19 +1,30 @@
 using System.IO.Abstractions.TestingHelpers;
 using BXCP.ProgrammingChallenge.Adapters.Csv;
+using BXCP.ProgrammingChallenge.Interfaces;
 using FluentAssertions;
 using FluentResults.Extensions.FluentAssertions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace BXCP.ProgrammingChallenge.Tests.Weather;
 
 public class CsvWeatherReaderTests
 {
+    private ILogger<IWeatherReader> _logger;
+
+    [SetUp]
+    public void Setup()
+    {
+        _logger = new NullLogger<IWeatherReader>();
+    }
+
     [Test]
     public void ReadWeatherRecords_FileDoesNotExist()
     {
         // Arrange
         var fileSystem = new MockFileSystem();
         var fileName = "doesnotexist.csv";
-        var sut = new CsvWeatherReader(fileSystem);
+        var sut = new CsvWeatherReader(fileSystem, _logger);
 
         // Act
         var result = sut.ReadWeatherRecords(fileName);
@@ -31,7 +42,7 @@ public class CsvWeatherReaderTests
         {
             { "empty.csv", new MockFileData(string.Empty)}
         });
-        var sut = new CsvWeatherReader(fileSystem);
+        var sut = new CsvWeatherReader(fileSystem, _logger);
 
         // Act
         var result = sut.ReadWeatherRecords("empty.csv");
@@ -49,7 +60,7 @@ public class CsvWeatherReaderTests
         {
             { "empty.json", new MockFileData(string.Empty)}
         });
-        var sut = new CsvWeatherReader(fileSystem);
+        var sut = new CsvWeatherReader(fileSystem, _logger);
 
         // Act
         var result = sut.ReadWeatherRecords("empty.json");
@@ -68,7 +79,7 @@ public class CsvWeatherReaderTests
         {
             { "missing-columns.csv", new MockFileData(testFile)}
         });
-        var sut = new CsvWeatherReader(fileSystem);
+        var sut = new CsvWeatherReader(fileSystem, _logger);
 
         // Act
         var result = sut.ReadWeatherRecords("missing-columns.csv");
@@ -87,7 +98,7 @@ public class CsvWeatherReaderTests
         {
             { "missing-columns.csv", new MockFileData(testFile)}
         });
-        var sut = new CsvWeatherReader(fileSystem);
+        var sut = new CsvWeatherReader(fileSystem, _logger);
 
         // Act
         var result = sut.ReadWeatherRecords("missing-columns.csv");
@@ -106,7 +117,7 @@ public class CsvWeatherReaderTests
         {
             { "weather.csv", new MockFileData(testFile)}
         });
-        var sut = new CsvWeatherReader(fileSystem);
+        var sut = new CsvWeatherReader(fileSystem, _logger);
 
         // Act
         var result = sut.ReadWeatherRecords("weather.csv");

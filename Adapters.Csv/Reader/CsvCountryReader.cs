@@ -5,29 +5,33 @@ using BXCP.ProgrammingChallenge.Interfaces;
 using CsvHelper;
 using CsvHelper.Configuration;
 using FluentResults;
+using Microsoft.Extensions.Logging;
 
 namespace BXCP.ProgrammingChallenge.Adapters.Csv;
 
-public class CsvCountryReader(IFileSystem _fileSystem) : ICountryReader
+public class CsvCountryReader(IFileSystem _fileSystem, ILogger logger) : ICountryReader
 {
   public Result<IEnumerable<Core.Models.Country>> ReadCountries(string source)
   {
     source = FileHelper.StripFileProtocol(source);
 
+    logger.LogDebug("Calculated location for file: {Location}", source);
+
     if (!_fileSystem.File.Exists(source))
     {
+      logger.LogError("File does not exist at {Source}", source);
       return Result.Fail(new Error($"file not found at specified path: {source}"));
     }
 
     if (_fileSystem.Path.GetExtension(source) != ".csv")
     {
+      logger.LogError("File extension {Ext} does not fit reader", _fileSystem.Path.GetExtension(source));
       return Result.Fail("file uses incompatible extension for csv");
     }
 
-    var delimiter = FileHelper.DetectCsvDelimiter(_fileSystem, source);
     var options = new CsvConfiguration(new CultureInfo("de-DE"))
     {
-      Delimiter = delimiter,
+      DetectDelimiter = true
     };
 
     using var fileStream = _fileSystem.File.OpenRead(source);
@@ -47,6 +51,7 @@ public class CsvCountryReader(IFileSystem _fileSystem) : ICountryReader
     }
     catch (CsvHelperException ex)
     {
+      logger.LogError(ex, "Reading countries from {File} failed", source);
       return Result.Fail(new Error("could not parse csv file into weather record object").CausedBy(ex));
     }
   }
